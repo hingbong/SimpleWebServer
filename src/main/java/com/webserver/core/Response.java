@@ -36,9 +36,13 @@ class Response {
       output = socket.getOutputStream();
       out = new PrintWriter(output);
       if (uriFile.exists()) {
-        response200(out);
-        output.write(data);
-        output.flush();
+        if (data != null) {
+          response200(out);
+          output.write(data);
+          output.flush();
+        } else {
+          response404(out);
+        }
       } else {
         response404(out);
       }
@@ -61,6 +65,9 @@ class Response {
     FileInputStream fis = null;
     byte[] data = null;
     if (uriFile.exists()) {
+      if (uriFile.isDirectory()) {
+        return null;
+      }
       try {
         data = new byte[(int) uriFile.length()];
         fis = new FileInputStream(uriFile);
@@ -94,7 +101,7 @@ class Response {
   }
 
   private boolean isContentTypeIllegal(String contentType) {
-    if (contentType == null) {
+    if (acceptType == null || contentType == null) {
       return false;
     }
     return acceptType.contains(contentType) || acceptType.contains("*/*");

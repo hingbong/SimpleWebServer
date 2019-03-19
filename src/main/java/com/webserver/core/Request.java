@@ -61,13 +61,20 @@ class Request {
   private void storeHeader(String message) {
     // 拆分http请求头,HashMap存储
     httpHeader = new HashMap<>();
-    String get_ = message.substring(message.indexOf("GET ") + 4, message.indexOf("\r\n"));
+    if (message == null) {
+      return;
+    }
     if (message.contains("GET")) {
+      String get_ = message.substring(message.indexOf("GET ") + 4, message.indexOf("\r\n"));
       httpHeader.put("GET", get_);
-    } else {
-      httpHeader.put("POST", get_);
+    } else if (message.contains("POST")) {
+      String post_ = message.substring(message.indexOf("POST ") + 5, message.indexOf("\r\n"));
+      httpHeader.put("POST", post_);
     }
     System.out.println(message);
+    if (!message.contains("\r\n")) {
+      return;
+    }
     String subMessage = message.substring(message.indexOf("\r\n")).trim();
     String[] subMessages = subMessage.split("\\r\\n");
     for (int i = 0; i < subMessages.length; i++) {
