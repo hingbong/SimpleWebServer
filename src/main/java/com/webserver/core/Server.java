@@ -32,11 +32,9 @@ class Server {
         Thread thread = new Thread(() -> {
 //          System.out.println("connected");
           try {
-            synchronized (socket) {
               Request request = new Request(socket.getInputStream());
-              Response response = new Response(socket.getOutputStream(), request);
+            Response response = new Response(socket, request);
               response.sendData();
-            }
           } catch (IOException e) {
             e.printStackTrace();
           } finally {

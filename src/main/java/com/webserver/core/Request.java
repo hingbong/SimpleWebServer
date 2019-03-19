@@ -30,7 +30,7 @@ class Request {
       len = -1;
     }
 //    System.out.print(message);
-    httpHeader = storeHeader(message);
+    storeHeader(message);
     System.out.println(httpHeader);
     if (len != -1) {
       int index1, index2;
@@ -54,29 +54,28 @@ class Request {
     return uri;
   }
 
-  HashMap<String, String> getHttpHeader() {
-    return httpHeader;
+  String getAcceptType() {
+    return httpHeader.get("Accept");
   }
 
-  private HashMap<String, String> storeHeader(String message) {
+  private void storeHeader(String message) {
     // 拆分http请求头,HashMap存储
-    HashMap<String, String> header = new HashMap<>();
+    httpHeader = new HashMap<>();
     String get_ = message.substring(message.indexOf("GET ") + 4, message.indexOf("\r\n"));
     if (message.contains("GET")) {
-      header.put("GET", get_);
+      httpHeader.put("GET", get_);
     } else {
-      header.put("POST", get_);
+      httpHeader.put("POST", get_);
     }
     System.out.println(message);
     String subMessage = message.substring(message.indexOf("\r\n")).trim();
     String[] subMessages = subMessage.split("\\r\\n");
     for (int i = 0; i < subMessages.length; i++) {
       if (subMessages[i].contains(": ")) {
-        header.put(subMessages[i].substring(0, subMessages[i].indexOf(":")),
+        httpHeader.put(subMessages[i].substring(0, subMessages[i].indexOf(":")),
             subMessages[i].substring(subMessages[i].indexOf(":") + 2));
       }
     }
-    return header;
   }
 
   private User postUser(String message) {

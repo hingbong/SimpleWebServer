@@ -5,24 +5,24 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Date;
-import java.util.HashMap;
 
 class Response {
 
-  private final OutputStream output;
-  private final File uriFile;
-  private HashMap<String, String> httpHeader;
+  private Socket socket;
+  private File uriFile;
+  private String acceptType;
 
-  Response(OutputStream output, Request request) {
-    this.output = output;
+  Response(Socket socket, Request request) {
+    this.socket = socket;
     request.parseUri();
     String uri = request.getUri();
     if ("".equals(uri) || uri == null) {
       uri = "index.html";
     }
-    httpHeader = request.getHttpHeader();
+    acceptType = request.getAcceptType();
     uriFile = new File(Server.WEB_ROOT, uri);
 //    System.out.println(uriFile);
   }
@@ -30,9 +30,11 @@ class Response {
   void sendData() {
     // 发送数据
     byte[] data = readFile();
-
+    OutputStream output = null;
+    PrintWriter out = null;
     try {
-      PrintWriter out = new PrintWriter(output);
+      output = socket.getOutputStream();
+      out = new PrintWriter(output);
       if (uriFile.exists()) {
         response200(out);
         output.write(data);
@@ -42,6 +44,15 @@ class Response {
       }
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      if (out != null) {
+        out.close();
+        try {
+          output.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 
@@ -83,8 +94,10 @@ class Response {
   }
 
   private boolean isContentTypeIllegal(String contentType) {
-    return httpHeader.get("Accept").contains(contentType) || httpHeader.get("Accept")
-        .contains("*/*");
+    if (contentType == null) {
+      return false;
+    }
+    return acceptType.contains(contentType) || acceptType.contains("*/*");
   }
 
   private void response200(PrintWriter out) {
