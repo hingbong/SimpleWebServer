@@ -1,2 +1,2 @@
 # SimpleWebServer
-SimpleWebServer in Java
+SimpleWebServer using Socket in Java
