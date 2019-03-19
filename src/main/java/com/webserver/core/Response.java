@@ -91,6 +91,9 @@ class Response {
   private String getContentType() {
     // 获取MIME类型
     String type;
+    if (uriFile.toString().endsWith(".woff2")) {
+      return "application/font-woff2";
+    }
     try {
       type = Files.probeContentType(uriFile.toPath());
     } catch (IOException e) {

@@ -31,7 +31,7 @@ class Request {
     }
 //    System.out.print(message);
     storeHeader(message);
-    System.out.println(httpHeader);
+//    System.out.println(httpHeader);
     if (len != -1) {
       int index1, index2;
       index1 = message.indexOf(' ');
@@ -39,6 +39,10 @@ class Request {
         index2 = message.indexOf(' ', index1 + 1);
         if (index2 > index1) {
           uri = message.substring(index1 + 2, index2);
+          if (uri.contains("?")) {
+            uri = uri.substring(0, uri.indexOf("?"));
+            System.out.println(uri);
+          }
         }
       }
     }
