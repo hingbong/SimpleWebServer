@@ -2,6 +2,7 @@ package com.webserver.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -31,8 +32,10 @@ class Server {
         Socket socket = serverSocket.accept();
         Thread thread = new Thread(() -> {
 //          System.out.println("connected");
+          InputStream in = null;
           try {
-            Request request = new Request(socket.getInputStream());
+            in = socket.getInputStream();
+            Request request = new Request(in);
             Response response = new Response(socket, request);
             if (request.getAcceptType() == null) {
               return;
@@ -42,6 +45,9 @@ class Server {
             e.printStackTrace();
           } finally {
             try {
+              if (in != null) {
+                in.close();
+              }
               socket.close();
             } catch (IOException e) {
               e.printStackTrace();

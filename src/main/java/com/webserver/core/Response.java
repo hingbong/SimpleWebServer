@@ -115,7 +115,7 @@ class Response {
     }
     String head = "HTTP/1.1 200 OK\n" +
         "Date: " + new Date() + "\n" +
-        "Content-type:" + contentType + ";charset=utf-8\n" +
+        "Content-type:" + contentType + "\n" +
         "Content-length: " + uriFile.length() + "\n\n";
     out.print(head);
     out.flush(); // flush character output stream buffer
