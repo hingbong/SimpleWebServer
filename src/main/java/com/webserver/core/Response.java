@@ -101,7 +101,7 @@ class Response {
   }
 
   private boolean isContentTypeIllegal(String contentType) {
-    if (acceptType == null || contentType == null) {
+    if (contentType == null) {
       return false;
     }
     return acceptType.contains(contentType) || acceptType.contains("*/*");
@@ -125,14 +125,11 @@ class Response {
     out.println("HTTP/1.1 404 File Not Found\n");
     out.flush();
     out.print("<!DOCTYPE html>\n" +
-        "<html lang=\"en\">\n" +
         "<head>\n" +
         "    <meta charset=\"UTF-8\">\n" +
         "    <title>404 File Not Found</title>\n" +
         "</head>\n" +
-        "<body>\n" +
-        "404 File Not Found\n" +
-        "</body>\n" +
+        "<body>404 File Not Found</body>\n" +
         "</html>");
     out.flush();
   }

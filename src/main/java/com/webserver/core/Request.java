@@ -64,14 +64,7 @@ class Request {
     if (message == null) {
       return;
     }
-    if (message.contains("GET")) {
-      String get_ = message.substring(message.indexOf("GET ") + 4, message.indexOf("\r\n"));
-      httpHeader.put("GET", get_);
-    } else if (message.contains("POST")) {
-      String post_ = message.substring(message.indexOf("POST ") + 5, message.indexOf("\r\n"));
-      httpHeader.put("POST", post_);
-    }
-    System.out.println(message);
+//    System.out.println(message);
     if (!message.contains("\r\n")) {
       return;
     }
