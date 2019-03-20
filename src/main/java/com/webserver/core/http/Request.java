@@ -1,17 +1,18 @@
-package com.webserver.core;
+package com.webserver.core.http;
 
+import com.webserver.core.User;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-class Request {
+public class Request {
 
   private final InputStream in;
   private HashMap<String, String> httpHeader;
   private String uri;
 
-  Request(InputStream in) {
+  public Request(InputStream in) {
     this.in = in;
   }
 
@@ -41,7 +42,6 @@ class Request {
           uri = message.substring(index1 + 2, index2);
           if (uri.contains("?")) {
             uri = uri.substring(0, uri.indexOf("?"));
-            System.out.println(uri);
           }
         }
       }

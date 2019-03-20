@@ -1,14 +1,15 @@
 package com.webserver.core;
 
+import com.webserver.core.http.Request;
+import com.webserver.core.http.Response;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-class Server {
+public class Server {
 
-  static final File WEB_ROOT = new File("web_root");
+  public static final File WEB_ROOT = new File("web_root");
   private static final Server SERVER = new Server();
   private ServerSocket serverSocket;
 
@@ -32,22 +33,14 @@ class Server {
         Socket socket = serverSocket.accept();
         Thread thread = new Thread(() -> {
 //          System.out.println("connected");
-          InputStream in = null;
           try {
-            in = socket.getInputStream();
-            Request request = new Request(in);
-            Response response = new Response(socket, request);
-            if (request.getAcceptType() == null) {
-              return;
-            }
+            Request request = new Request(socket.getInputStream());
+            Response response = new Response(socket.getOutputStream(), request);
             response.sendData();
           } catch (IOException e) {
             e.printStackTrace();
           } finally {
             try {
-              if (in != null) {
-                in.close();
-              }
               socket.close();
             } catch (IOException e) {
               e.printStackTrace();

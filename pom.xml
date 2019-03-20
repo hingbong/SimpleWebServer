@@ -7,6 +7,12 @@
     <groupId>Hingbong.github.io</groupId>
     <artifactId>WebServer_v1</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+  <dependencies>
+    <dependency>
+      <artifactId>dom4j</artifactId>
+      <groupId>org.dom4j</groupId>
+      <version>2.1.1</version>
+    </dependency>
+  </dependencies>
 
 </project>
