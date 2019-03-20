@@ -1,7 +1,6 @@
 package com.webserver.core.http;
 
 import com.webserver.core.Server;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,23 +70,23 @@ public class Response {
     }
     int len;
     byte[] data = new byte[1024 * 64];
-    BufferedInputStream bis = null;
+    FileInputStream fileInputStream = null;
     String head = "HTTP/1.1 200 OK\n" +
         "Date: " + new Date() + "\n" +
         "Content-type:" + contentType + "\n" +
         "Content-length: " + uriFile.length() + "\n";
     out.println(head);
     try {
-      bis = new BufferedInputStream(new FileInputStream(uriFile));
-      while ((len = bis.read(data)) != -1) {
+      fileInputStream = new FileInputStream(uriFile);
+      while ((len = fileInputStream.read(data)) != -1) {
         out.write(data, 0, len);
       }
     } catch (IOException e) {
       e.printStackTrace();
     } finally {
-      if (bis != null) {
+      if (fileInputStream != null) {
         try {
-          bis.close();
+          fileInputStream.close();
         } catch (IOException e) {
           e.printStackTrace();
         }
