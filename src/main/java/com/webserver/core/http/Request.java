@@ -3,6 +3,7 @@ package com.webserver.core.http;
 import com.webserver.core.User;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -10,13 +11,35 @@ public class Request {
 
   private final InputStream in;
   private HashMap<String, String> httpHeader;
-  private String uri;
+
+  private String url;
+  private String requestLine;
+  private String protocol;
+  private String method;
+  private String requestURI;
+  private String queryString;
 
   public Request(InputStream in) {
     this.in = in;
   }
 
-  void parseUri() {
+  public void start() {
+    String message = getMessage();
+    if (message == null) {
+      return;
+    }
+    setRequestLine(message);
+    parseURL();
+    parseURI();
+    parseParam();
+    storeHeader(message);
+    User user = postUser(message);
+    if (user != null) {
+      System.out.println("user:" + user);
+    }
+  }
+
+  String getMessage() {
     // 解析uri
     String message = "";
     byte[] data = new byte[2048];
@@ -26,40 +49,62 @@ public class Request {
       if (len != -1) {
         message = new String(data, 0, len, StandardCharsets.UTF_8);
       }
+      return message;
     } catch (IOException e) {
       e.printStackTrace();
-      len = -1;
+      return null;
     }
-//    System.out.print(message);
-    storeHeader(message);
-//    System.out.println(httpHeader);
-    if (len != -1) {
-      int index1, index2;
-      index1 = message.indexOf(' ');
-      if (index1 != -1) {
-        index2 = message.indexOf(' ', index1 + 1);
-        if (index2 > index1) {
-          uri = message.substring(index1 + 2, index2);
-          if (uri.contains("?")) {
-            uri = uri.substring(0, uri.indexOf("?"));
-          }
+  }
+
+  private void setRequestLine(String message) {
+    if (message != null) {
+      if (message.toUpperCase().contains("GET") || message.toUpperCase().contains("POST")) {
+        requestLine = message.substring(0, message.indexOf("\n"));
+        protocol = requestLine.substring(message.indexOf("HTTP"));
+        if (requestLine.toUpperCase().contains("GET")) {
+          method = "GET";
+        }
+        if (requestLine.toUpperCase().contains("POST")) {
+          method = "POST";
         }
       }
     }
+  }
 
-    User user = postUser(message);
-    if (user != null) {
-      System.out.println("user:" + user);
+  private void parseURL() {
+    int index1, index2;
+    index1 = requestLine.indexOf(' ');
+    if (index1 != -1) {
+      index2 = requestLine.indexOf(' ', index1 + 1);
+      if (index2 > index1) {
+        url = requestLine.substring(index1 + 2, index2);
+      }
     }
-//    System.out.println(uri);
   }
 
-  String getUri() {
-    return uri;
+  private void parseURI() {
+    if (url.contains("?") && url.contains("=")) {
+      String[] strings = url.split("\\?");
+      requestURI = strings[0];
+      queryString = strings[1];
+    } else {
+      requestURI = url;
+    }
   }
 
-  String getAcceptType() {
-    return httpHeader.get("Accept");
+  private void parseParam() {
+    HashMap<String, String> query = new HashMap<>();
+    if (queryString != null) {
+      if (queryString.contains("&")) {
+        String[] strs = queryString.split("&");
+        for (String str : strs) {
+          String[] params = str.split("=");
+          query.put(URLDecoder.decode(params[0], StandardCharsets.UTF_8),
+              URLDecoder.decode(params[1], StandardCharsets.UTF_8));
+        }
+      }
+    }
+    System.out.println(query);
   }
 
   private void storeHeader(String message) {
@@ -85,10 +130,26 @@ public class Request {
   private User postUser(String message) {
     // 传送用户
     if (message.contains("username=") && message.contains("password=")) {
-      return new User(
-          message.substring(message.indexOf("username=") + 9, message.indexOf("&password=")),
-          message.substring(message.indexOf("&password=") + 10));
+      message = URLDecoder.decode(message, StandardCharsets.UTF_8);
+      String name = message
+          .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
+      String passwd;
+      if (message.contains("&confirm_password=")) {
+        passwd = message
+            .substring(message.indexOf("&password=") + 10, message.indexOf("&confirm_password="));
+      } else {
+        passwd = message.substring(message.indexOf("&password=") + 10);
+      }
+      return new User(name, passwd);
     }
     return null;
+  }
+
+  String getRequestURI() {
+    return requestURI;
+  }
+
+  String getAcceptType() {
+    return httpHeader.get("Accept");
   }
 }

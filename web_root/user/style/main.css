@@ -5,3 +5,7 @@
   padding-right: 50px;
   max-width: 600px;
 }
+
+#message {
+  min-height: 20px;
+}

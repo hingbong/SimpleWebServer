@@ -35,6 +35,7 @@ public class Server {
 //          System.out.println("connected");
           try {
             Request request = new Request(socket.getInputStream());
+            request.start();
             Response response = new Response(socket.getOutputStream(), request);
             response.sendData();
           } catch (IOException e) {

@@ -6,24 +6,26 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 public class Response {
 
   private OutputStream output;
-  private File uriFile;
+  private File urlFile;
   private String acceptType;
 
   public Response(OutputStream output, Request request) {
     this.output = output;
-    request.parseUri();
-    String uri = request.getUri();
+    String uri = request.getRequestURI();
     if ("".equals(uri) || uri == null) {
       uri = "index.html";
     }
+    uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
     acceptType = request.getAcceptType();
-    uriFile = new File(Server.WEB_ROOT, uri);
-//    System.out.println(uriFile);
+    urlFile = new File(Server.WEB_ROOT, uri);
+//    System.out.println(urlFile);
   }
 
   public void sendData() {
@@ -31,7 +33,7 @@ public class Response {
     PrintStream out = null;
     try {
       out = new PrintStream(output, true);
-      if (uriFile.exists() && !uriFile.isDirectory()) {
+      if (urlFile.exists() && !urlFile.isDirectory()) {
         response200(out);
       } else {
         response404(out);
@@ -51,7 +53,7 @@ public class Response {
   private String getContentType() {
     // 获取MIME类型
     String type;
-    type = HttpContext.getMimeType(uriFile);
+    type = HttpContext.getMimeType(urlFile);
     return type;
   }
 
@@ -74,10 +76,10 @@ public class Response {
     String head = "HTTP/1.1 200 OK\n" +
         "Date: " + new Date() + "\n" +
         "Content-type:" + contentType + "\n" +
-        "Content-length: " + uriFile.length() + "\n";
+        "Content-length: " + urlFile.length() + "\n";
     out.println(head);
     try {
-      fileInputStream = new FileInputStream(uriFile);
+      fileInputStream = new FileInputStream(urlFile);
       while ((len = fileInputStream.read(data)) != -1) {
         out.write(data, 0, len);
       }
