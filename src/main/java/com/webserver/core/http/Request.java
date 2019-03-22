@@ -34,9 +34,25 @@ public class Request {
     parseParam();
     storeHeader(message);
     User user = postUser(message);
+    boolean isNewUser = false;
     if (user != null) {
-      System.out.println("user:" + user);
+      if (url.contains("reg")) {
+        try {
+          isNewUser = User.newUser(user);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        if (isNewUser) {
+          System.out.println("user:" + user);
+          requestURI = "user/reg_successfully.html";
+        } else {
+          requestURI = "user/reg_failed.html";
+          System.out.println("NOT Ａ NEW USER");
+        }
+      }
     }
+    System.out.println(requestURI);
+    System.out.println(url);
   }
 
   String getMessage() {
@@ -58,7 +74,8 @@ public class Request {
 
   private void setRequestLine(String message) {
     if (message != null) {
-      if (message.toUpperCase().contains("GET") || message.toUpperCase().contains("POST")) {
+      if (message.toUpperCase().contains("GET") || message.toUpperCase().contains("POST")
+          || !message.contains("&confirm_password=")) {
         requestLine = message.substring(0, message.indexOf("\n"));
         protocol = requestLine.substring(message.indexOf("HTTP"));
         if (requestLine.toUpperCase().contains("GET")) {
