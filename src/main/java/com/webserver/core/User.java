@@ -40,10 +40,28 @@ public class User implements Serializable {
     public static boolean verifyUser(User user) throws IOException {
         RandomAccessFile raf = new RandomAccessFile("user.dat", "r");
         byte[] data = new byte[32];
-        while ((raf.read(data) != -1)) {
+        while (raf.read(data) != -1) {
             if (new String(data, StandardCharsets.UTF_8).trim().equals(user.username)) {
                 raf.read(data);
                 if (new String(data, StandardCharsets.UTF_8).trim().equals(user.password)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean modifyPasswd(User user, String newPasswd) throws IOException {
+        RandomAccessFile raf = new RandomAccessFile("user.dat", "rw");
+        byte[] data = new byte[32];
+        while (raf.read(data) != -1) {
+            if (new String(data, StandardCharsets.UTF_8).trim().equals(user.username)) {
+                raf.read(data);
+                if (new String(data, StandardCharsets.UTF_8).trim().equals(user.password)) {
+                    byte[] newPasswdData = newPasswd.trim().getBytes(StandardCharsets.UTF_8);
+                    newPasswdData = Arrays.copyOf(newPasswdData, 32);
+                    raf.seek(raf.getFilePointer() - 32);
+                    raf.write(newPasswdData);
                     return true;
                 }
             }

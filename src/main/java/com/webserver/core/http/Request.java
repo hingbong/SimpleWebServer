@@ -63,9 +63,24 @@ public class Request {
                     requestURI = "user/login_successfully.html";
                 } else requestURI = "user/login_failed.html";
             }
+            if (url.contains("modify_password")) {
+                if (message.contains("&new_password=")) {
+                    boolean isModifyOK = false;
+                    String newPasswd = message.substring(message.indexOf("&new_password=") + 14);
+                    System.out.println(newPasswd);
+                    try {
+                        isModifyOK = User.modifyPasswd(user, newPasswd);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (isModifyOK) {
+                        requestURI = "user/modify_successfully.html";
+                    } else requestURI = "user/modify_failed.html";
+                }
+            }
         }
-        System.out.println(requestURI);
-        System.out.println(url);
+//        System.out.println(requestURI);
+//        System.out.println(url);
     }
 
     String getMessage() {
@@ -133,7 +148,7 @@ public class Request {
                 }
             }
         }
-        System.out.println(parameters);
+//        System.out.println(parameters);
     }
 
     private void storeHeader(String message) {
@@ -148,10 +163,10 @@ public class Request {
         }
         String subMessage = message.substring(message.indexOf("\r\n")).trim();
         String[] subMessages = subMessage.split("\\r\\n");
-        for (int i = 0; i < subMessages.length; i++) {
-            if (subMessages[i].contains(": ")) {
-                httpHeader.put(subMessages[i].substring(0, subMessages[i].indexOf(":")),
-                        subMessages[i].substring(subMessages[i].indexOf(":") + 2));
+        for (String s : subMessages) {
+            if (s.contains(": ")) {
+                httpHeader.put(s.substring(0, s.indexOf(":")),
+                        s.substring(s.indexOf(":") + 2));
             }
         }
     }
@@ -166,6 +181,10 @@ public class Request {
             if (message.contains("&confirm_password=")) {
                 passwd = message
                         .substring(message.indexOf("&password=") + 10, message.indexOf("&confirm_password="));
+            } else if (message.contains("&new_password=")) {
+                passwd = message
+                        .substring(message.indexOf("&password=") + 10, message.indexOf("&new_password="));
+
             } else {
                 passwd = message.substring(message.indexOf("&password=") + 10);
             }
