@@ -1,7 +1,6 @@
 package com.webserver.core.http;
 
 import com.webserver.core.User;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
@@ -61,7 +60,9 @@ public class Request {
                 }
                 if (isLoginOk) {
                     requestURI = "user/login_successfully.html";
-                } else requestURI = "user/login_failed.html";
+                } else {
+                    requestURI = "user/login_failed.html";
+                }
             }
             if (url.contains("modify_password")) {
                 if (message.contains("&new_password=")) {
@@ -75,7 +76,9 @@ public class Request {
                     }
                     if (isModifyOK) {
                         requestURI = "user/modify_successfully.html";
-                    } else requestURI = "user/modify_failed.html";
+                    } else {
+                        requestURI = "user/modify_failed.html";
+                    }
                 }
             }
         }
@@ -103,7 +106,7 @@ public class Request {
     private void setRequestLine(String message) {
         if (message != null) {
             if (message.toUpperCase().contains("GET") || message.toUpperCase().contains("POST")
-                    || !message.contains("&confirm_password=")) {
+                || !message.contains("&confirm_password=")) {
                 requestLine = message.substring(0, message.indexOf("\n"));
                 protocol = requestLine.substring(message.indexOf("HTTP"));
                 if (requestLine.toUpperCase().contains("GET")) {
@@ -144,7 +147,7 @@ public class Request {
                 for (String str : strs) {
                     String[] params = str.split("=");
                     parameters.put(URLDecoder.decode(params[0], StandardCharsets.UTF_8),
-                            URLDecoder.decode(params[1], StandardCharsets.UTF_8));
+                        URLDecoder.decode(params[1], StandardCharsets.UTF_8));
                 }
             }
         }
@@ -166,7 +169,7 @@ public class Request {
         for (String s : subMessages) {
             if (s.contains(": ")) {
                 httpHeader.put(s.substring(0, s.indexOf(":")),
-                        s.substring(s.indexOf(":") + 2));
+                    s.substring(s.indexOf(":") + 2));
             }
         }
     }
@@ -176,14 +179,16 @@ public class Request {
         if (message.contains("username=") && message.contains("password=")) {
             message = URLDecoder.decode(message, StandardCharsets.UTF_8);
             String name = message
-                    .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
+                .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
             String passwd;
             if (message.contains("&confirm_password=")) {
                 passwd = message
-                        .substring(message.indexOf("&password=") + 10, message.indexOf("&confirm_password="));
+                    .substring(message.indexOf("&password=") + 10,
+                        message.indexOf("&confirm_password="));
             } else if (message.contains("&new_password=")) {
                 passwd = message
-                        .substring(message.indexOf("&password=") + 10, message.indexOf("&new_password="));
+                    .substring(message.indexOf("&password=") + 10,
+                        message.indexOf("&new_password="));
 
             } else {
                 passwd = message.substring(message.indexOf("&password=") + 10);

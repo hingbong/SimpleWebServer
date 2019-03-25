@@ -79,7 +79,7 @@ public class User implements Serializable {
         }
         User user = (User) o;
         return username.equals(user.username) &&
-                password.equals(user.password);
+            password.equals(user.password);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class User implements Serializable {
     @Override
     public String toString() {
         return "User{" +
-                "username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                '}';
+            "username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            '}';
     }
 }

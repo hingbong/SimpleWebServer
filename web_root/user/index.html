@@ -59,12 +59,12 @@
 </div>
 <script>
   let submitCheck = function () {
-    if (document.getElementById('username').value.length < 1) {
+    if ($("#username")[0].value.length < 1) {
       alert("User name cannot be empty!!!");
       event.preventDefault();
       return false;
     }
-    if (document.getElementById('password').value.length < 6) {
+    if ($("#password")[0].value.length < 6) {
       alert("Password length is from 6 to 12");
       event.preventDefault();
       return false;
