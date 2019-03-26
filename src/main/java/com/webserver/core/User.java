@@ -2,20 +2,42 @@ package com.webserver.core;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.Serializable;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Objects;
 
-public class User implements Serializable {
+public class User {
 
-    private static final long serialVersionUID = 7645096949777878404L;
     private String username;
     private String password;
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public static User postUser(String message) {
+        // 传送用户
+        if (message.contains("username=") && message.contains("password=")) {
+            message = URLDecoder.decode(message, StandardCharsets.UTF_8);
+            String name = message
+                .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
+            String passwd;
+            if (message.contains("&confirm_password=")) {
+                passwd = message
+                    .substring(message.indexOf("&password=") + 10,
+                        message.indexOf("&confirm_password="));
+            } else if (message.contains("&new_password=")) {
+                passwd = message
+                    .substring(message.indexOf("&password=") + 10,
+                        message.indexOf("&new_password="));
+
+            } else {
+                passwd = message.substring(message.indexOf("&password=") + 10);
+            }
+            return new User(name, passwd);
+        }
+        return null;
     }
 
     public static boolean newUser(User user) throws IOException {
@@ -67,24 +89,6 @@ public class User implements Serializable {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof User)) {
-            return false;
-        }
-        User user = (User) o;
-        return username.equals(user.username) &&
-            password.equals(user.password);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(username, password);
     }
 
     @Override

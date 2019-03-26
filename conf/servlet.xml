@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+  <servlet>
+    <path>function/user/login.html</path>
+    <servlet-class>Login</servlet-class>
+  </servlet>
+  <servlet>
+    <path>function/user/modify_password.html</path>
+    <servlet-class>ModifyPasswd</servlet-class>
+  </servlet>
+  <servlet>
+    <path>function/user/reg.html</path>
+    <servlet-class>Reg</servlet-class>
+  </servlet>
+</web-app>

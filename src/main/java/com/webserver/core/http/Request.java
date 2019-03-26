@@ -1,106 +1,74 @@
 package com.webserver.core.http;
 
-import com.webserver.core.User;
+import com.webserver.core.servlet.HttpServlet;
+import com.webserver.core.servlet.ServletContext;
 import java.io.IOException;
-import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class Request {
 
-    private final InputStream in;
-    private HashMap<String, String> httpHeader;
+    private final SocketChannel socketChannel;
+    private ByteBuffer buffer;
+    private HashMap<String, String> httpHeader = new HashMap<>();
     private HashMap<String, String> parameters = new HashMap<>();
     private String url;
     private String requestLine;
+    private String message;
     private String protocol;
     private String method;
     private String requestURI;
     private String queryString;
 
-    public Request(InputStream in) {
-        this.in = in;
+    public Request(SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
     }
 
     public void start() {
-        String message = getMessage();
-        if (message == null) {
-            return;
-        }
+        readData();
+        message = parseMessage();
         setRequestLine(message);
         parseURL();
         parseURI();
         parseParam();
         storeHeader(message);
-        User user = postUser(message);
-        if (user != null) {
-            if (url.contains("reg")) {
-                boolean isNewUser = false;
-                try {
-                    isNewUser = User.newUser(user);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (isNewUser) {
-                    System.out.println("user:" + user);
-                    requestURI = "user/reg_successfully.html";
-                } else {
-                    requestURI = "user/reg_failed.html";
-                    System.out.println("NOT Ａ NEW USER");
-                }
-            }
-            if (url.contains("index")) {
-                boolean isLoginOk = false;
-                try {
-                    isLoginOk = User.verifyUser(user);
-                } catch (IOException e) {
-                    requestURI = "user/login_failed.html";
-                    e.printStackTrace();
-                }
-                if (isLoginOk) {
-                    requestURI = "user/login_successfully.html";
-                } else {
-                    requestURI = "user/login_failed.html";
-                }
-            }
-            if (url.contains("modify_password")) {
-                if (message.contains("&new_password=")) {
-                    boolean isModifyOK = false;
-                    String newPasswd = message.substring(message.indexOf("&new_password=") + 14);
-                    System.out.println(newPasswd);
-                    try {
-                        isModifyOK = User.modifyPasswd(user, newPasswd);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (isModifyOK) {
-                        requestURI = "user/modify_successfully.html";
-                    } else {
-                        requestURI = "user/modify_failed.html";
-                    }
-                }
+        if (requestURI.contains("function") && requestURI.endsWith(".html")) {
+            String className = ServletContext.get(requestURI);
+            try {
+                Class clazz = Class.forName("com.webserver.core.servlet." + className + "Servlet");
+                Constructor constructor = clazz.getConstructor(Request.class);
+                HttpServlet httpServlet = (HttpServlet) constructor.newInstance(this);
+                httpServlet.service();
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                e.printStackTrace();
             }
         }
-//        System.out.println(requestURI);
-//        System.out.println(url);
     }
 
-    String getMessage() {
-        // 解析uri
-        String message = "";
-        byte[] data = new byte[2048];
-        int len;
+    private void readData() {
+        int pos = 0;
         try {
-            len = in.read(data);
-            if (len != -1) {
-                message = new String(data, 0, len, StandardCharsets.UTF_8);
+            buffer = ByteBuffer.allocate(1024);
+            socketChannel.read(buffer);
+            buffer.limit(buffer.capacity());
+            int read = socketChannel.read(buffer);
+            if (read == -1) {
+                return;
             }
-            return message;
+            buffer.flip();
+            buffer.position(pos);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
+    }
+
+    private String parseMessage() {
+        return new String(buffer.array(), 0, buffer.limit());
     }
 
     private void setRequestLine(String message) {
@@ -156,7 +124,6 @@ public class Request {
 
     private void storeHeader(String message) {
         // 拆分http请求头,HashMap存储
-        httpHeader = new HashMap<>();
         if (message == null) {
             return;
         }
@@ -174,35 +141,20 @@ public class Request {
         }
     }
 
-    private User postUser(String message) {
-        // 传送用户
-        if (message.contains("username=") && message.contains("password=")) {
-            message = URLDecoder.decode(message, StandardCharsets.UTF_8);
-            String name = message
-                .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
-            String passwd;
-            if (message.contains("&confirm_password=")) {
-                passwd = message
-                    .substring(message.indexOf("&password=") + 10,
-                        message.indexOf("&confirm_password="));
-            } else if (message.contains("&new_password=")) {
-                passwd = message
-                    .substring(message.indexOf("&password=") + 10,
-                        message.indexOf("&new_password="));
 
-            } else {
-                passwd = message.substring(message.indexOf("&password=") + 10);
-            }
-            return new User(name, passwd);
-        }
-        return null;
+    public String getRequestURI() {
+        return requestURI;
     }
 
-    String getRequestURI() {
-        return requestURI;
+    public void setRequestURI(String requestURI) {
+        this.requestURI = requestURI;
     }
 
     String getAcceptType() {
         return httpHeader.get("Accept");
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
