@@ -11,6 +11,9 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
+/**
+ * @author Hingbong
+ */
 public class Request {
 
     private final SocketChannel socketChannel;
@@ -29,7 +32,7 @@ public class Request {
         this.socketChannel = socketChannel;
     }
 
-    public void start() {
+    public synchronized void start() {
         readData();
         message = parseMessage();
         setRequestLine(message);
@@ -37,14 +40,21 @@ public class Request {
         parseURI();
         parseParam();
         storeHeader(message);
-        if (requestURI.contains("function") && requestURI.endsWith(".html")) {
+        String function = "function";
+        String html = ".html";
+        if (requestURI.contains(function) && requestURI.endsWith(html)) {
             String className = ServletContext.get(requestURI);
             try {
-                Class clazz = Class.forName("com.webserver.core.servlet." + className + "Servlet");
-                Constructor constructor = clazz.getConstructor(Request.class);
+                Class<?> clazz = Class
+                    .forName("com.webserver.core.servlet." + className + "Servlet");
+                Constructor<?> constructor = clazz.getConstructor(Request.class);
                 HttpServlet httpServlet = (HttpServlet) constructor.newInstance(this);
                 httpServlet.service();
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            } catch (ClassNotFoundException
+                | NoSuchMethodException
+                | IllegalAccessException
+                | InstantiationException
+                | InvocationTargetException e) {
                 e.printStackTrace();
             }
         }
@@ -72,15 +82,18 @@ public class Request {
     }
 
     private void setRequestLine(String message) {
+        String get = "GET";
+        String post = "POST";
         if (message != null) {
-            if (message.toUpperCase().contains("GET") || message.toUpperCase().contains("POST")
+            if (message.toUpperCase().contains(get)
+                || message.toUpperCase().contains(post)
                 || !message.contains("&confirm_password=")) {
                 requestLine = message.substring(0, message.indexOf("\n"));
                 protocol = requestLine.substring(message.indexOf("HTTP"));
-                if (requestLine.toUpperCase().contains("GET")) {
+                if (requestLine.toUpperCase().contains(get)) {
                     method = "GET";
                 }
-                if (requestLine.toUpperCase().contains("POST")) {
+                if (requestLine.toUpperCase().contains(post)) {
                     method = "POST";
                 }
             }
@@ -99,7 +112,9 @@ public class Request {
     }
 
     private void parseURI() {
-        if (url.contains("?") && url.contains("=")) {
+        String questionMark = "?";
+        String equalSign = "=";
+        if (url.contains(questionMark) && url.contains(equalSign)) {
             String[] strings = url.split("\\?");
             requestURI = strings[0];
             queryString = strings[1];
@@ -110,16 +125,18 @@ public class Request {
 
     private void parseParam() {
         if (queryString != null) {
-            if (queryString.contains("&")) {
+            String andSign = "&";
+            if (queryString.contains(andSign)) {
                 String[] strs = queryString.split("&");
                 for (String str : strs) {
                     String[] params = str.split("=");
-                    parameters.put(URLDecoder.decode(params[0], StandardCharsets.UTF_8),
+                    parameters.put(
+                        URLDecoder.decode(params[0], StandardCharsets.UTF_8),
                         URLDecoder.decode(params[1], StandardCharsets.UTF_8));
                 }
             }
         }
-//        System.out.println(parameters);
+        //        System.out.println(parameters);
     }
 
     private void storeHeader(String message) {
@@ -127,20 +144,18 @@ public class Request {
         if (message == null) {
             return;
         }
-//    System.out.println(message);
-        if (!message.contains("\r\n")) {
+        String enter = "\r\n";
+        if (!message.contains(enter)) {
             return;
         }
         String subMessage = message.substring(message.indexOf("\r\n")).trim();
         String[] subMessages = subMessage.split("\\r\\n");
         for (String s : subMessages) {
             if (s.contains(": ")) {
-                httpHeader.put(s.substring(0, s.indexOf(":")),
-                    s.substring(s.indexOf(":") + 2));
+                httpHeader.put(s.substring(0, s.indexOf(":")), s.substring(s.indexOf(":") + 2));
             }
         }
     }
-
 
     public String getRequestURI() {
         return requestURI;

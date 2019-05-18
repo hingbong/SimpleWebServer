@@ -4,6 +4,9 @@ import com.webserver.core.User;
 import com.webserver.core.http.Request;
 import java.io.IOException;
 
+/**
+ * @author Hingbong
+ */
 public class ModifyPasswdServlet implements HttpServlet {
 
     private Request request;
@@ -23,8 +26,10 @@ public class ModifyPasswdServlet implements HttpServlet {
     private void modifyPasswdServlet(User user) {
         String message = request.getMessage();
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("modify_password")) {
-            if (message.contains("&new_password=")) {
+        String modifyPassword = "modify_password";
+        String newPassword = "&new_password=";
+        if (requestURI.contains(modifyPassword)) {
+            if (message.contains(newPassword)) {
                 boolean isModifyOK = false;
                 String newPasswd = message.substring(message.indexOf("&new_password=") + 14);
                 try {
@@ -33,12 +38,11 @@ public class ModifyPasswdServlet implements HttpServlet {
                     e.printStackTrace();
                 }
                 if (isModifyOK) {
-                    request.setRequestURI(dir + "user/modify_successfully.html");
+                    request.setRequestURI(DIR + "user/modify_successfully.html");
                 } else {
-                    request.setRequestURI(dir + "user/modify_failed.html");
+                    request.setRequestURI(DIR + "user/modify_failed.html");
                 }
             }
         }
     }
-
 }

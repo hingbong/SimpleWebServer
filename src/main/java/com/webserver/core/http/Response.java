@@ -2,26 +2,26 @@ package com.webserver.core.http;
 
 import com.webserver.core.Server;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLDecoder;
-import java.nio.CharBuffer;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 
+/**
+ * @author Hingbong
+ */
 public class Response {
 
     private SocketChannel socketChannel;
-    private CharsetEncoder encoder;
     private File urlFile;
     private String acceptType;
 
     public Response(SocketChannel socketChannel, Request request) {
         this.socketChannel = socketChannel;
-        encoder = StandardCharsets.UTF_8.newEncoder();
         String uri = request.getRequestURI();
         if ("".equals(uri) || uri == null) {
             uri = "index.html";
@@ -39,8 +39,6 @@ public class Response {
             } else {
                 response404(socketChannel);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             if (socketChannel != null) {
                 try {
@@ -74,12 +72,21 @@ public class Response {
                 response404(socketChannel);
                 return;
             }
-            String head = "HTTP/1.1 200 OK\n" +
-                "Date: " + new Date() + "\n" +
-                "Content-type:" + contentType + "\n" +
-                "Content-length: " + urlFile.length() + "\n";
-            socketChannel.write(encoder.encode(CharBuffer.wrap(head + "\n")));
-            fileChannel = new FileInputStream(urlFile).getChannel();
+            String head =
+                new StringBuilder()
+                    .append("HTTP/1.1 200 OK\n")
+                    .append("Date: ")
+                    .append(LocalDateTime.now())
+                    .append("\n")
+                    .append("Content-type:")
+                    .append(contentType)
+                    .append("\n")
+                    .append("Content-length: ")
+                    .append(urlFile.length())
+                    .append("\n\n")
+                    .toString();
+            socketChannel.write(ByteBuffer.wrap(head.getBytes(StandardCharsets.UTF_8)));
+            fileChannel = FileChannel.open(urlFile.toPath(), StandardOpenOption.READ);
             fileChannel.transferTo(0, urlFile.length(), socketChannel);
         } catch (IOException e) {
             e.printStackTrace();
@@ -94,15 +101,32 @@ public class Response {
         }
     }
 
-    private void response404(SocketChannel socketChannel) throws IOException {
-        socketChannel.write(encoder.encode(CharBuffer.wrap(("HTTP/1.1 404 File Not Found\n" +
-            "Date: " + new Date() + "\n"))));
-        socketChannel.write(encoder.encode(CharBuffer.wrap("<!DOCTYPE html>\n" +
-            "<head>\n" +
-            "    <meta charset=\"UTF-8\">\n" +
-            "    <title>404 File Not Found</title>\n" +
-            "</head>\n" +
-            "<body>404 File Not Found</body>\n" +
-            "</html>")));
+    private void response404(SocketChannel socketChannel) {
+        FileChannel notFound = null;
+        try {
+            socketChannel.write(
+                ByteBuffer.wrap(
+                    (new StringBuilder()
+                        .append("HTTP/1.1 404 Not Found\r\n")
+                        .append("Date: ")
+                        .append(LocalDateTime.now())
+                        .append("\n")
+                        .append("Content-ype:text/html\n\n")
+                        .toString())
+                        .getBytes(StandardCharsets.UTF_8)));
+            File file = new File("web_root/404.html");
+            notFound = FileChannel.open(file.toPath(), StandardOpenOption.READ);
+            notFound.transferTo(0, file.length(), socketChannel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (notFound != null) {
+                try {
+                    notFound.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

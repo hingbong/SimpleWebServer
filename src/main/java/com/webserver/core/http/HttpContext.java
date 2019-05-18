@@ -10,20 +10,20 @@ import org.dom4j.io.SAXReader;
 
 class HttpContext {
 
-    private static final HashMap<String, String> mimeType = new HashMap<>();
+    private static final HashMap<String, String> MIME_TYPE = new HashMap<>();
 
     static {
-        initMIME_Type();
+        initMimeType();
     }
 
-    private static void initMIME_Type() {
+    private static void initMimeType() {
         SAXReader saxReader = new SAXReader();
         try {
             Document document = saxReader.read("conf/web.xml");
             Element root = document.getRootElement();
             List<Element> elements = root.elements("mime-mapping");
             for (Element element : elements) {
-                mimeType.put(element.elementTextTrim("extension"),
+                MIME_TYPE.put(element.elementTextTrim("extension"),
                     element.elementTextTrim("mime-type"));
             }
         } catch (DocumentException e) {
@@ -34,6 +34,6 @@ class HttpContext {
     static String getMimeType(File file) {
         String fileName = file.getName();
         String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-        return mimeType.get(extension);
+        return MIME_TYPE.get(extension);
     }
 }

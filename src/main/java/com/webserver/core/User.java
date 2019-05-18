@@ -6,6 +6,9 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+/**
+ * @author Hingbong
+ */
 public class User {
 
     private String username;
@@ -18,19 +21,23 @@ public class User {
 
     public static User postUser(String message) {
         // 传送用户
-        if (message.contains("username=") && message.contains("password=")) {
+        String username = "username=";
+        String password = "password=";
+        if (message.contains(username) && message.contains(password)) {
             message = URLDecoder.decode(message, StandardCharsets.UTF_8);
-            String name = message
-                .substring(message.indexOf("username=") + 9, message.indexOf("&password="));
+            String name =
+                message.substring(message.indexOf("username=") + 9, message.indexOf("&password="));
             String passwd;
-            if (message.contains("&confirm_password=")) {
-                passwd = message
-                    .substring(message.indexOf("&password=") + 10,
-                        message.indexOf("&confirm_password="));
-            } else if (message.contains("&new_password=")) {
-                passwd = message
-                    .substring(message.indexOf("&password=") + 10,
-                        message.indexOf("&new_password="));
+            String confirmPassword = "&confirm_password=";
+            String newPassword = "&new_password=";
+            if (message.contains(confirmPassword)) {
+                passwd =
+                    message.substring(
+                        message.indexOf("&password=") + 10, message.indexOf("&confirm_password="));
+            } else if (message.contains(newPassword)) {
+                passwd =
+                    message.substring(
+                        message.indexOf("&password=") + 10, message.indexOf("&new_password="));
 
             } else {
                 passwd = message.substring(message.indexOf("&password=") + 10);
@@ -93,9 +100,6 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
-            "username='" + username + '\'' +
-            ", password='" + password + '\'' +
-            '}';
+        return "User{" + "username='" + username + '\'' + ", password='" + password + '\'' + '}';
     }
 }

@@ -4,6 +4,9 @@ import com.webserver.core.User;
 import com.webserver.core.http.Request;
 import java.io.IOException;
 
+/**
+ * @author Hingbong
+ */
 public class LoginServlet implements HttpServlet {
 
     private Request request;
@@ -22,18 +25,19 @@ public class LoginServlet implements HttpServlet {
 
     private void loginServlet(User user) {
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("login")) {
+        String login = "login";
+        if (requestURI.contains(login)) {
             boolean isLoginOk = false;
             try {
                 isLoginOk = User.verifyUser(user);
             } catch (IOException e) {
-                request.setRequestURI(dir + "user/login_failed.html");
+                request.setRequestURI(DIR + "user/login_failed.html");
                 e.printStackTrace();
             }
             if (isLoginOk) {
-                request.setRequestURI(dir + "user/login_successfully.html");
+                request.setRequestURI(DIR + "user/login_successfully.html");
             } else {
-                request.setRequestURI(dir + "user/login_failed.html");
+                request.setRequestURI(DIR + "user/login_failed.html");
             }
         }
     }

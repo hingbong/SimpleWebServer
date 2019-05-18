@@ -4,6 +4,9 @@ import com.webserver.core.User;
 import com.webserver.core.http.Request;
 import java.io.IOException;
 
+/**
+ * @author Hingbong
+ */
 public class RegServlet implements HttpServlet {
 
     private Request request;
@@ -22,7 +25,8 @@ public class RegServlet implements HttpServlet {
 
     private void regServlet(User user) {
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("reg")) {
+        String reg = "reg";
+        if (requestURI.contains(reg)) {
             boolean isNewUser = false;
             try {
                 isNewUser = User.newUser(user);
@@ -30,9 +34,9 @@ public class RegServlet implements HttpServlet {
                 e.printStackTrace();
             }
             if (isNewUser) {
-                request.setRequestURI(dir + "user/reg_successfully.html");
+                request.setRequestURI(DIR + "user/reg_successfully.html");
             } else {
-                request.setRequestURI(dir + "user/reg_failed.html");
+                request.setRequestURI(DIR + "user/reg_failed.html");
                 System.out.println("NOT Ａ NEW USER");
             }
         }

@@ -7,6 +7,9 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+/**
+ * @author Hingbong
+ */
 public class ServletContext {
 
     private static HashMap<String, String> selvletMap = new HashMap<>();
@@ -22,8 +25,8 @@ public class ServletContext {
             Element root = document.getRootElement();
             List<Element> elements = root.elements();
             for (Element element : elements) {
-                selvletMap.put(element.elementTextTrim("path"),
-                    element.elementTextTrim("servlet-class"));
+                selvletMap
+                    .put(element.elementTextTrim("path"), element.elementTextTrim("servlet-class"));
             }
         } catch (DocumentException e) {
             e.printStackTrace();

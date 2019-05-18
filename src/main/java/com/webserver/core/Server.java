@@ -10,6 +10,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
+/**
+ * @author Hingbong
+ */
 public class Server {
 
     public static final File WEB_ROOT = new File("web_root");
@@ -20,43 +23,50 @@ public class Server {
     private Server() {
         try {
             serverSocket = ServerSocketChannel.open();
-            serverSocket.bind(new InetSocketAddress(8888)); // bind the port to the channel
+            // bind the port to the channel
+            serverSocket.bind(new InetSocketAddress(8888));
             selector = Selector.open();
-            serverSocket.configureBlocking(false); // set the server socket channel to non-blocking
+            // set the server socket channel to non-blocking
+            serverSocket.configureBlocking(false);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         //noinspection InfiniteLoopStatement
         while (true) {
             SERVER.start();
-            Thread.sleep(100);
         }
     }
 
     private void start() {
         try {
-            serverSocket.register(selector,
-                SelectionKey.OP_ACCEPT); // register the channel to the selector to listen the socket
+            serverSocket.register(
+                selector,
+                // register the channel to the selector to listen the socket
+                SelectionKey.OP_ACCEPT);
             while (selector.select() > 0) {
                 Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()) {
                     SelectionKey key = iterator.next();
-                    iterator.remove(); // get the selection key and remove it from selector
-                    if (key.isValid()) { // if the key is not valid,pass it
-                        if (key.isAcceptable()) { // see if the key is acceptable and go on
-                            SocketChannel socketChannel = serverSocket
-                                .accept(); // use server socket channel to accept the socket channel
-                            socketChannel
-                                .configureBlocking(false); // set the socket channel to non-blocking
-                            socketChannel.register(selector,
-                                SelectionKey.OP_READ); // register the channel readable to selector
-                        } else if (key.isReadable()) { // see if the key is readable and go on
+                    // get the selection key and remove it from selector
+                    iterator.remove();
+                    // if the key is not valid,pass it
+                    if (key.isValid()) {
+                        // see if the key is acceptable and go on
+                        if (key.isAcceptable()) {
+                            // use server socket channel to accept the socket channel
+                            SocketChannel socketChannel = serverSocket.accept();
+                            // set the socket channel to non-blocking
+                            socketChannel.configureBlocking(false);
+                            // register the channel readable to selector
+                            socketChannel.register(selector, SelectionKey.OP_READ);
+                            // see if the key is readable and go on
+                        } else if (key.isReadable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
                             channel.configureBlocking(false);
-                            new Session().run(channel);
+                            new Session(channel).run();
                         }
                     }
                 }
@@ -66,5 +76,3 @@ public class Server {
         }
     }
 }
-
-
